@@ -1,0 +1,31 @@
+# Build artifacts
+*.zip
+incognito-extension.zip
+
+# Screenshots for Chrome Web Store
+screenshot*.png
+Gemini_Generated_Image_*.png
+
+# Development tools
+generate_icons.html
+generate_icons.js
+
+# Documentation and prompts
+README.md
+chrome_store_requirements.txt
+quick_copy_paste.txt
+gemini_*.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node modules (if any)
+node_modules/
