@@ -1,13 +1,20 @@
 {
   "manifest_version": 3,
   "name": "Quick Incognito Switch",
-  "version": "1.0.0",
-  "description": "Quickly switch between incognito and normal tabs. Open links in opposite tab type with keyboard shortcut or context menu.",
+  "version": "1.1.0",
+  "description": "Quickly switch between incognito and normal tabs. Open links in opposite tab type with context menu or modifier key.",
   "permissions": [
     "contextMenus",
-    "tabs",
-    "activeTab"
+    "tabs"
   ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
   "background": {
     "service_worker": "background.js"
   },
@@ -18,15 +25,6 @@
       "run_at": "document_idle"
     }
   ],
-  "commands": {
-    "open-opposite-tab": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+I",
-        "mac": "Command+Shift+I"
-      },
-      "description": "Open current page in opposite tab type"
-    }
-  },
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",

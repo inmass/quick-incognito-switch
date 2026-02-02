@@ -1,5 +1,44 @@
+// Check if extension is enabled in incognito mode
+async function checkIncognitoAccess() {
+  try {
+    return await chrome.extension.isAllowedIncognitoAccess();
+  } catch (error) {
+    console.error('Error checking incognito access:', error);
+    return false;
+  }
+}
+
+// Show badge notification to indicate incognito access is needed
+async function showBadgeNotification() {
+  try {
+    await chrome.action.setBadgeText({ text: '!' });
+    await chrome.action.setBadgeBackgroundColor({ color: '#FF0000' });
+  } catch (error) {
+    console.error('Error showing badge notification:', error);
+  }
+}
+
+// Clear badge notification when incognito access is enabled
+async function clearBadgeNotification() {
+  try {
+    await chrome.action.setBadgeText({ text: '' });
+  } catch (error) {
+    console.error('Error clearing badge notification:', error);
+  }
+}
+
+// Check incognito access and update badge notification
+async function checkAndUpdateBadge() {
+  const isAllowed = await checkIncognitoAccess();
+  if (!isAllowed) {
+    showBadgeNotification();
+  } else {
+    clearBadgeNotification();
+  }
+}
+
 // Create context menu items on extension installation
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener(async (details) => {
   // Context menu for links
   chrome.contextMenus.create({
     id: "open-opposite-tab",
@@ -13,10 +52,25 @@ chrome.runtime.onInstalled.addListener(() => {
     title: "Search in opposite tab",
     contexts: ["selection"]
   });
+  
+  // Check incognito access and show badge if not enabled
+  const isAllowed = await checkIncognitoAccess();
+  if (!isAllowed) {
+    showBadgeNotification();
+  }
+  
+  // Open install page only on initial install, not on update
+  if (details.reason === 'install') {
+    const installUrl = chrome.runtime.getURL('install.html');
+    chrome.tabs.create({ url: installUrl });
+  }
 });
 
 // Handle context menu clicks
-chrome.contextMenus.onClicked.addListener((info, tab) => {
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  // Check incognito access and update badge
+  await checkAndUpdateBadge();
+  
   if (info.menuItemId === "open-opposite-tab" && info.linkUrl) {
     // Open link in opposite tab
     openInOppositeTab(info.linkUrl, tab);
@@ -31,24 +85,14 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   }
 });
 
-// Handle keyboard shortcut
-chrome.commands.onCommand.addListener((command) => {
-  if (command === "open-opposite-tab") {
-    // Get the current active tab
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0] && tabs[0].url) {
-        openInOppositeTab(tabs[0].url, tabs[0]);
-      }
-    });
-  }
-});
-
 // Handle messages from content script (modifier key + Click)
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'openLinkInOppositeTab' && request.url) {
     // Get the current tab info
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
       if (tabs[0]) {
+        // Check incognito access and update badge
+        await checkAndUpdateBadge();
         openInOppositeTab(request.url, tabs[0]);
       }
     });
